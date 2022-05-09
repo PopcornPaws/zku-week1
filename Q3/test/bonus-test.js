@@ -1,3 +1,4 @@
+/*
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const fs = require("fs");
@@ -63,3 +64,4 @@ describe("SystemOfEquations", function () {
         expect(await verifier.verifyProof(a, b, c, d)).to.be.false;
     });
 });
+*/

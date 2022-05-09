@@ -35,14 +35,13 @@ describe("LessThan10 with Groth16", function () {
 
     it("Should return true for correct proof", async function () {
         //[assignment] insert your script here
-        const { proof, publicSignals } = await groth16.fullProve({"x": 2}, "contracts/circuits/LessThan10/LessThan10_js/LessThan10.wasm","contracts/circuits/LessThan10/circuit_final.zkey");
+        const { proof, publicSignals } = await groth16.fullProve({"in": 11}, "contracts/circuits/LessThan10/LessThan10_js/LessThan10.wasm","contracts/circuits/LessThan10/circuit_final.zkey");
 
-        console.log("Public output: ",publicSignals[0]);
-
+        console.log("Public output: ", publicSignals[0])
+        expect(publicSignals[0]).to.equal('0');
         const editedPublicSignals = unstringifyBigInts(publicSignals);
         const editedProof = unstringifyBigInts(proof);
         const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
-        console.log(calldata)
     
         const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
     
@@ -53,11 +52,72 @@ describe("LessThan10 with Groth16", function () {
 
         expect(await verifier.verifyProof(a, b, c, Input)).to.be.true;
     });
-    it("Should return false for invalid proof", async function () {
-        let a = [0, 0];
-        let b = [[0, 0], [0, 0]];
-        let c = [0, 0];
-        let d = [0]
-        expect(await verifier.verifyProof(a, b, c, d)).to.be.false;
+});
+
+describe("RangeProof with Groth16", function () {
+    let Verifier;
+
+    beforeEach(async function () {
+        Verifier = await ethers.getContractFactory("RangeProofVerifier");
+        verifier = await Verifier.deploy();
+        await verifier.deployed();
+    });
+
+    it("Should return true for correct proof", async function () {
+        //[assignment] insert your script here
+        const { proof, publicSignals } = await groth16.fullProve({"in": "11", "range": ["10", "20"]}, "contracts/circuits/RangeProof/RangeProof_js/RangeProof.wasm","contracts/circuits/RangeProof/circuit_final.zkey");
+
+        console.log("Public output: ", publicSignals[0]) // should be 1
+        expect(publicSignals[0]).to.equal('1');
+        const editedPublicSignals = unstringifyBigInts(publicSignals);
+        const editedProof = unstringifyBigInts(proof);
+        const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
+    
+        const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
+    
+        const a = [argv[0], argv[1]];
+        const b = [[argv[2], argv[3]], [argv[4], argv[5]]];
+        const c = [argv[6], argv[7]];
+        const Input = argv.slice(8);
+
+        expect(await verifier.verifyProof(a, b, c, Input)).to.be.true;
+    });
+
+    it("Should return true for correct proof", async function () {
+        const { proof, publicSignals } = await groth16.fullProve({"in": "8", "range": ["10", "20"]}, "contracts/circuits/RangeProof/RangeProof_js/RangeProof.wasm","contracts/circuits/RangeProof/circuit_final.zkey");
+
+        console.log("Public output: ", publicSignals[0]) // should be 0
+        expect(publicSignals[0]).to.equal('0');
+        const editedPublicSignals = unstringifyBigInts(publicSignals);
+        const editedProof = unstringifyBigInts(proof);
+        const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
+    
+        const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
+    
+        const a = [argv[0], argv[1]];
+        const b = [[argv[2], argv[3]], [argv[4], argv[5]]];
+        const c = [argv[6], argv[7]];
+        const Input = argv.slice(8);
+
+        expect(await verifier.verifyProof(a, b, c, Input)).to.be.true;
+    });
+
+    it("Should return true for invalid proof", async function () {
+        const { proof, publicSignals } = await groth16.fullProve({"in": "30", "range": ["10", "20"]}, "contracts/circuits/RangeProof/RangeProof_js/RangeProof.wasm","contracts/circuits/RangeProof/circuit_final.zkey");
+
+        console.log("Public output: ", publicSignals[0]) // should be 0
+        expect(publicSignals[0]).to.equal('0');
+        const editedPublicSignals = unstringifyBigInts(publicSignals);
+        const editedProof = unstringifyBigInts(proof);
+        const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
+    
+        const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
+    
+        const a = [argv[0], argv[1]];
+        const b = [[argv[2], argv[3]], [argv[4], argv[5]]];
+        const c = [argv[6], argv[7]];
+        const Input = argv.slice(8);
+
+        expect(await verifier.verifyProof(a, b, c, Input)).to.be.true;
     });
 });
