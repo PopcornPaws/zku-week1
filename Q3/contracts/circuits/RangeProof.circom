@@ -23,4 +23,15 @@ template RangeProof(n) {
     out <== low.out * high.out;
 }
 
-component main = RangeProof(32);
+template RangeProofMain(lower, upper) {
+    signal input in;
+    signal output out;
+    component rp = RangeProof(32);
+    rp.in <== in;
+    rp.range[0] <== lower;
+    rp.range[1] <== upper;
+
+    rp.out ==> out;
+}
+
+//component main = RangeProofMain(10, 20);
